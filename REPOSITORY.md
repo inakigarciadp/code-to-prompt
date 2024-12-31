@@ -93,6 +93,13 @@ pip install typer rich pathspec
    - Handle various file encodings gracefully
    - Ensure cross-platform compatibility in output
 
+4. **File Ignoring System**:
+   - Use smart defaults from DEFAULT_IGNORE_PATTERNS
+   - Support both replacement and extension of default patterns
+   - Handle .gitignore patterns alongside custom patterns
+   - Provide clear feedback about which files are ignored
+   - Maintain consistent pattern matching behavior
+
 ## Application Overview
 
 ### Purpose
@@ -100,6 +107,7 @@ Code-to-Prompt is a command-line tool designed to convert codebases into prompts
 
 ### Key Features
 - Recursive file system traversal
+- Smart file ignoring system with defaults
 - Gitignore support (including default Git behaviors)
 - Multiple output destinations (console, file)
 - Markdown-formatted output with syntax highlighting
@@ -111,13 +119,14 @@ Code-to-Prompt is a command-line tool designed to convert codebases into prompts
 ### How It Works
 The application follows these high-level steps:
 1. Accepts a directory path (or uses current directory)
-2. Loads and parses `.gitignore` rules if present
-3. Recursively traverses the directory while respecting ignore patterns
-4. Reads file contents with appropriate encoding detection
-5. Determines programming language for syntax highlighting
-6. Generates a structured Markdown output with code blocks
-7. Routes output to selected destinations (console, file)
-8. Provides feedback on output operations
+2. Processes ignore patterns (defaults, custom, or extra)
+3. Loads and parses `.gitignore` rules if present
+4. Recursively traverses the directory while respecting ignore patterns
+5. Reads file contents with appropriate encoding detection
+6. Determines programming language for syntax highlighting
+7. Generates a structured Markdown output with code blocks
+8. Routes output to selected destinations (console, file)
+9. Provides feedback on output operations
 
 ## Code Explanation
 
@@ -127,7 +136,16 @@ The application follows these high-level steps:
 The application uses Typer to create a user-friendly command-line interface. The main command accepts:
 - An optional directory argument
 - Multiple output destinations via `--output` options
+- File ignore patterns via `--ignore` and `--extra-ignore` options
 - Provides helpful error messages and usage information
+
+#### File Ignoring System
+The file ignoring system consists of several components:
+- `DEFAULT_IGNORE_PATTERNS`: Predefined list of common files to ignore
+- `--ignore` option: Replaces default patterns with custom ones
+- `--extra-ignore` option: Adds patterns to the defaults
+- Integration with .gitignore patterns
+- Smart pattern matching with pathspec
 
 #### File Content System
 The file content system consists of three main components:
@@ -165,17 +183,33 @@ The output system uses a multi-step process:
 1. User input → CLI argument parsing
 2. Directory resolution and validation
 3. Output configuration parsing
-4. Gitignore rules loading (if present)
-5. File discovery and filtering
-6. File content reading and processing
-7. Language detection and markdown generation
-8. Output distribution to handlers
+4. Ignore pattern processing
+5. Gitignore rules loading (if present)
+6. File discovery and filtering
+7. File content reading and processing
+8. Language detection and markdown generation
+9. Output distribution to handlers
 
 ### CLI Usage Examples
 
-Basic usage with default output (console):
+Basic usage with default output and ignore patterns:
 ```bash
 code-to-prompt
+```
+
+Custom ignore patterns (replacing defaults):
+```bash
+code-to-prompt --ignore "*.log" "temp/"
+```
+
+Additional ignore patterns (extending defaults):
+```bash
+code-to-prompt --extra-ignore "*.custom" "private/"
+```
+
+Disable all ignore patterns:
+```bash
+code-to-prompt --ignore
 ```
 
 Output to a file:
@@ -183,14 +217,14 @@ Output to a file:
 code-to-prompt --output file=output.md
 ```
 
-Multiple outputs:
+Multiple outputs with custom ignore patterns:
 ```bash
-code-to-prompt --output console --output file=output.md
+code-to-prompt --output console --output file=output.md --ignore "*.log" --extra-ignore "private/"
 ```
 
 Short form:
 ```bash
-code-to-prompt -o console -o file=output.md
+code-to-prompt -o console -o file=output.md -i "*.log" -e "private/"
 ```
 
 ### Output Format
