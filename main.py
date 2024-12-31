@@ -388,7 +388,13 @@ def main(
         None,
         "--ignore",
         "-i",
-        help="Patterns to ignore (e.g., '*.log', 'temp/'). An empty list disables default patterns.",
+        help="Patterns to ignore (e.g., '*.log', 'temp/'). Replaces default patterns. Use empty list to disable all patterns.",
+    ),
+    extra_ignore: Optional[list[str]] = typer.Option(
+        None,
+        "--extra-ignore",
+        "-e",
+        help="Additional patterns to ignore. These are added to default patterns.",
     ),
 ) -> None:
     """
@@ -402,9 +408,15 @@ def main(
     handlers = get_output_handlers(output_configs)
 
     # Handle ignore patterns
-    patterns_to_use = (
-        DEFAULT_IGNORE_PATTERNS if ignore_patterns is None else ignore_patterns or []
-    )
+    if ignore_patterns is not None:
+        # Use provided patterns (empty list disables all ignoring)
+        patterns_to_use = ignore_patterns
+    else:
+        # Start with default patterns
+        patterns_to_use = DEFAULT_IGNORE_PATTERNS.copy()
+        # Add extra patterns if provided
+        if extra_ignore:
+            patterns_to_use.extend(extra_ignore)
 
     # Load gitignore if it exists and combine with our patterns
     gitignore_spec = load_gitignore(working_dir, patterns_to_use)
