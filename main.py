@@ -13,6 +13,66 @@ from pathspec.patterns import GitWildMatchPattern
 from rich import print
 from rich.markdown import Markdown
 
+# Default patterns for files that typically shouldn't be included in LLM prompts
+DEFAULT_IGNORE_PATTERNS = [
+    # Version Control
+    ".git",
+    ".gitignore",
+    ".gitattributes",
+    ".hg",
+    ".hgignore",
+    ".svn",
+    # Python
+    ".python-version",
+    "pyproject.toml",
+    "poetry.lock",
+    "requirements.txt",
+    "Pipfile",
+    "Pipfile.lock",
+    "uv.lock",
+    "ruff.toml",
+    "__pycache__",
+    "*.pyc",
+    "*.pyo",
+    "*.pyd",
+    ".pytest_cache",
+    ".coverage",
+    ".tox",
+    ".venv",
+    "venv",
+    # Node.js
+    "package.json",
+    "package-lock.json",
+    "yarn.lock",
+    "pnpm-lock.yaml",
+    "bun.lockb",
+    "node_modules",
+    ".npmrc",
+    ".yarnrc",
+    # IDE and Editor
+    ".vscode",
+    ".idea",
+    ".vs",
+    "*.swp",
+    "*.swo",
+    ".DS_Store",
+    # Build and Distribution
+    "dist",
+    "build",
+    "*.egg-info",
+    "*.whl",
+    # Environment and Configuration
+    ".env",
+    ".env.*",
+    "*.cfg",
+    ".editorconfig",
+    # Documentation
+    "LICENSE",
+    "LICENSE.*",
+    "COPYING",
+    "AUTHORS",
+]
+
 # Type aliases
 OutputHandler = Callable[[str], None]
 OutputHandlers = dict[str, OutputHandler]
@@ -115,30 +175,36 @@ def get_output_handlers(configs: list[OutputConfig]) -> list[OutputHandler]:
     ]  # Default to console output if no handlers specified
 
 
-def load_gitignore(directory: Path) -> Optional[PathSpec]:
+def load_gitignore(directory: Path, additional_patterns: list[str]) -> PathSpec:
     """
-    Load and parse .gitignore file if it exists.
+    Load and parse .gitignore file if it exists and combine with additional patterns.
 
     Args:
         directory: The directory containing the potential .gitignore file
+        additional_patterns: List of additional patterns to include in the PathSpec
 
     Returns:
-        PathSpec object if .gitignore exists, None otherwise
+        PathSpec object combining .gitignore patterns (if they exist) and additional patterns
     """
-    gitignore_path = directory / ".gitignore"
-    if not gitignore_path.is_file():
-        return None
+    patterns = additional_patterns.copy()  # Start with our additional patterns
 
-    try:
-        with gitignore_path.open("r", encoding="utf-8") as f:
-            # Filter out empty lines and comments
-            patterns = [
-                line.strip() for line in f if line.strip() and not line.startswith("#")
-            ]
-            return PathSpec.from_lines(GitWildMatchPattern, patterns)
-    except Exception as e:
-        print(f"[yellow]Warning: Error reading .gitignore file: {e}[/yellow]")
-        return None
+    # Try to read .gitignore patterns if the file exists
+    gitignore_path = directory / ".gitignore"
+    if gitignore_path.is_file():
+        try:
+            with gitignore_path.open("r", encoding="utf-8") as f:
+                # Filter out empty lines and comments
+                gitignore_patterns = [
+                    line.strip()
+                    for line in f
+                    if line.strip() and not line.startswith("#")
+                ]
+                patterns.extend(gitignore_patterns)
+        except Exception as e:
+            print(f"[yellow]Warning: Error reading .gitignore file: {e}[/yellow]")
+
+    # Create PathSpec from all patterns
+    return PathSpec.from_lines(GitWildMatchPattern, patterns)
 
 
 def should_ignore(
@@ -318,6 +384,12 @@ def main(
         "-o",
         help="Output destinations (e.g., console, file=output.md). Multiple allowed.",
     ),
+    ignore_patterns: Optional[list[str]] = typer.Option(
+        None,
+        "--ignore",
+        "-i",
+        help="Patterns to ignore (e.g., '*.log', 'temp/'). An empty list disables default patterns.",
+    ),
 ) -> None:
     """
     Generate an LLM prompt from a codebase.
@@ -329,8 +401,13 @@ def main(
     output_configs = [parse_output_config(out) for out in (output or ["console"])]
     handlers = get_output_handlers(output_configs)
 
-    # Load gitignore if it exists
-    gitignore_spec = load_gitignore(working_dir)
+    # Handle ignore patterns
+    patterns_to_use = (
+        DEFAULT_IGNORE_PATTERNS if ignore_patterns is None else ignore_patterns or []
+    )
+
+    # Load gitignore if it exists and combine with our patterns
+    gitignore_spec = load_gitignore(working_dir, patterns_to_use)
 
     # Get all files recursively, respecting gitignore
     files = get_files_recursively(working_dir, gitignore_spec)
