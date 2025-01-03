@@ -272,6 +272,46 @@ def get_files_recursively(
     return files
 
 
+def generate_directory_tree(
+    directory: Path, gitignore_spec: Optional[PathSpec] = None, prefix: str = ""
+) -> str:
+    """
+    Generate a tree view of the directory structure, respecting gitignore rules.
+
+    Args:
+        directory: The directory to generate tree for
+        gitignore_spec: Optional PathSpec object with gitignore patterns
+        prefix: Current line prefix for recursion (default: "")
+
+    Returns:
+        String containing the tree view of the directory
+    """
+    tree = []
+    contents = sorted(directory.iterdir(), key=lambda p: (p.is_file(), p.name.lower()))
+
+    for i, path in enumerate(contents):
+        is_last = i == len(contents) - 1
+        current_prefix = "└── " if is_last else "├── "
+        next_prefix = "    " if is_last else "│   "
+
+        # Skip if path should be ignored
+        if should_ignore(path, directory, gitignore_spec):
+            continue
+
+        # Add current item to tree
+        tree.append(f"{prefix}{current_prefix}{path.name}")
+
+        # Recursively process directories
+        if path.is_dir():
+            subtree = generate_directory_tree(
+                path, gitignore_spec, prefix + next_prefix
+            )
+            if subtree:  # Only add non-empty subtrees
+                tree.append(subtree)
+
+    return "\n".join(tree)
+
+
 def get_file_language(file_path: Path) -> str:
     """
     Determine the programming language based on file extension for syntax highlighting.
@@ -335,23 +375,35 @@ def read_file_content(file_path: Path) -> Optional[str]:
             return None
 
 
-def generate_markdown_output(files: list[Path], base_dir: Path) -> str:
+def generate_markdown_output(
+    files: list[Path], base_dir: Path, gitignore_spec: Optional[PathSpec]
+) -> str:
     """
-    Generate markdown formatted output for the list of files, including their contents.
+    Generate markdown formatted output for the list of files, including directory tree and contents.
 
     Args:
         files: List of files to include in the output
         base_dir: The base directory for creating relative paths
+        gitignore_spec: Optional PathSpec object with gitignore patterns
 
     Returns:
         Markdown formatted string
     """
     markdown = "# Codebase Contents\n\n"
 
+    # Add directory tree
+    markdown += "## Directory Structure\n\n"
+    markdown += "```\n"
+    markdown += base_dir.name + "\n"  # Root directory name
+    markdown += generate_directory_tree(base_dir, gitignore_spec)
+    markdown += "\n```\n\n"
+
+    # Add file contents
+    markdown += "## File Contents\n\n"
     for file in sorted(files):
         try:
             relative_path = file.relative_to(base_dir)
-            markdown += f"## File: `{relative_path}`\n\n"
+            markdown += f"### File: `{relative_path}`\n\n"
 
             # Read and include file contents
             content = read_file_content(file)
@@ -362,7 +414,7 @@ def generate_markdown_output(files: list[Path], base_dir: Path) -> str:
                 markdown += "*[File content could not be read]*\n\n"
 
         except ValueError:
-            markdown += f"## File: `{file}`\n\n"
+            markdown += f"### File: `{file}`\n\n"
             markdown += "*[File path error]*\n\n"
 
     return markdown
@@ -425,7 +477,7 @@ def main(
     files = get_files_recursively(working_dir, gitignore_spec)
 
     # Generate markdown output
-    markdown_content = generate_markdown_output(files, working_dir)
+    markdown_content = generate_markdown_output(files, working_dir, gitignore_spec)
 
     # Send to all configured outputs
     for handler in handlers:
