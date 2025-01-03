@@ -92,6 +92,8 @@ pip install typer rich pathspec
    - Include file contents with appropriate language identification
    - Handle various file encodings gracefully
    - Ensure cross-platform compatibility in output
+   - Render markdown files as raw markdown instead of code blocks
+   - Use syntax highlighting for all non-markdown files
 
 4. **File Ignoring System**:
    - Use smart defaults from DEFAULT_IGNORE_PATTERNS
@@ -113,6 +115,7 @@ Code-to-Prompt is a command-line tool designed to convert codebases into prompts
 - Multiple output destinations (console, file)
 - Markdown-formatted output with syntax highlighting
 - Automatic language detection for code blocks
+- Intelligent markdown file handling (rendered as raw markdown)
 - Robust file content reading with encoding handling
 - Cross-platform compatibility
 - Rich terminal output
@@ -125,8 +128,8 @@ The application follows these high-level steps:
 4. Recursively traverses the directory while respecting ignore patterns
 5. Generates a hierarchical tree view of the directory structure
 6. Reads file contents with appropriate encoding detection
-7. Determines programming language for syntax highlighting
-8. Generates a structured Markdown output with tree view and code blocks
+7. Determines programming language for syntax highlighting (except for markdown files)
+8. Generates a structured Markdown output with tree view and formatted content
 9. Routes output to selected destinations (console, file)
 10. Provides feedback on output operations
 
@@ -160,6 +163,8 @@ The file content system consists of three main components:
 - `read_file_content()`: Safely reads file contents with encoding handling
 - `get_file_language()`: Determines appropriate language for syntax highlighting
 - `generate_markdown_output()`: Formats files and their contents into Markdown
+  - Special handling for markdown files (rendered as raw markdown)
+  - Code block formatting for all other file types
 
 #### Output System
 The output system uses a functional approach with three main components:
@@ -184,8 +189,8 @@ The output system uses a multi-step process:
 1. `generate_directory_tree()`: Creates a visual tree representation of the codebase
 2. `get_files_recursively()`: Collects all relevant files while applying ignore rules
 3. `read_file_content()`: Reads and processes file contents with encoding detection
-4. `get_file_language()`: Determines appropriate syntax highlighting
-5. `generate_markdown_output()`: Formats everything into Markdown with code blocks
+4. `get_file_language()`: Determines appropriate syntax highlighting (skipped for markdown)
+5. `generate_markdown_output()`: Formats everything into appropriate format
 6. Output handlers: Route content to specified destinations
 
 ### Data Flow
@@ -197,7 +202,7 @@ The output system uses a multi-step process:
 6. Directory tree generation
 7. File discovery and filtering
 8. File content reading and processing
-9. Language detection and markdown generation
+9. Content formatting (raw markdown or syntax highlighted)
 10. Output distribution to handlers
 
 ### CLI Usage Examples
@@ -257,9 +262,8 @@ project_name
 
 ### File: `README.md`
 
-```markdown
 # Project documentation
-```
+This is rendered as raw markdown
 
 ### File: `src/module1/file1.py`
 
@@ -267,6 +271,3 @@ project_name
 def hello():
     print("Hello, world!")
 ```
-```
-
-The output is designed to be both human-readable and suitable for input to language models, with the directory tree providing a clear overview of the codebase structure before diving into individual file contents.
