@@ -12,7 +12,7 @@ You have access to two key files:
    - Implements gitignore support
    - Uses pathlib for file operations
 
-2. `REPOSITORY.md`: Comprehensive documentation
+2. `README.md`: Comprehensive documentation
    - Contains code style guidelines
    - Documents current features
    - Explains application architecture
@@ -37,7 +37,7 @@ The user will request new features for the application. For each feature request
    - Use pathlib.Path for file operations
    - Handle edge cases gracefully
 
-3. After implementation, if requested, update REPOSITORY_GUIDE.md to:
+3. After implementation, if requested, update README.md to:
    - Document the new feature
    - Update any relevant sections
    - Add new dependencies if introduced
@@ -47,7 +47,7 @@ The user will request new features for the application. For each feature request
 ## Important Notes
 
 - All code must target Python 3.12+
-- Use modern Python features as documented in REPOSITORY_GUIDE.md
+- Use modern Python features as documented in README.md
 - Maintain the project's focus on LLM-friendly output
 - Keep cross-platform compatibility in mind
 - Follow the existing error handling patterns
