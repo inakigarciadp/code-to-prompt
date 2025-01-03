@@ -422,8 +422,13 @@ def generate_markdown_output(
             # Read and include file contents
             content = read_file_content(file)
             if content is not None:
-                language = get_file_language(file)
-                markdown += f"```{language}\n{content}\n```\n\n"
+                if file.suffix.lower() == ".md":
+                    # For markdown files, include content directly without code blocks
+                    markdown += f"{content}\n\n"
+                else:
+                    # For all other files, use code blocks with language highlighting
+                    language = get_file_language(file)
+                    markdown += f"```{language}\n{content}\n```\n\n"
             else:
                 markdown += "*[File content could not be read]*\n\n"
 
