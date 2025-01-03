@@ -106,6 +106,7 @@ pip install typer rich pathspec
 Code-to-Prompt is a command-line tool designed to convert codebases into prompts suitable for Large Language Models (LLMs). It analyzes a codebase and generates a structured Markdown representation that includes both file structure and contents, making it easy to communicate code organization and implementation details to LLMs.
 
 ### Key Features
+- Directory tree visualization with proper hierarchical display
 - Recursive file system traversal
 - Smart file ignoring system with defaults
 - Gitignore support (including default Git behaviors)
@@ -122,13 +123,12 @@ The application follows these high-level steps:
 2. Processes ignore patterns (defaults, custom, or extra)
 3. Loads and parses `.gitignore` rules if present
 4. Recursively traverses the directory while respecting ignore patterns
-5. Reads file contents with appropriate encoding detection
-6. Determines programming language for syntax highlighting
-7. Generates a structured Markdown output with code blocks
-8. Routes output to selected destinations (console, file)
-9. Provides feedback on output operations
-
-## Code Explanation
+5. Generates a hierarchical tree view of the directory structure
+6. Reads file contents with appropriate encoding detection
+7. Determines programming language for syntax highlighting
+8. Generates a structured Markdown output with tree view and code blocks
+9. Routes output to selected destinations (console, file)
+10. Provides feedback on output operations
 
 ### Core Components
 
@@ -146,6 +146,14 @@ The file ignoring system consists of several components:
 - `--extra-ignore` option: Adds patterns to the defaults
 - Integration with .gitignore patterns
 - Smart pattern matching with pathspec
+
+#### Directory Tree Generation
+The directory tree system provides a visual representation of the codebase structure:
+- Generates an ASCII tree view of the directory hierarchy
+- Respects all ignore patterns and gitignore rules
+- Maintains consistent sorting for predictable output
+- Provides visual indicators for directory structure
+- Ensures cross-platform compatibility in display
 
 #### File Content System
 The file content system consists of three main components:
@@ -173,11 +181,12 @@ The application uses `pathlib.Path` for all file system operations, providing:
 
 #### Output Generation
 The output system uses a multi-step process:
-1. `get_files_recursively()`: Collects all relevant files while applying ignore rules
-2. `read_file_content()`: Reads and processes file contents with encoding detection
-3. `get_file_language()`: Determines appropriate syntax highlighting
-4. `generate_markdown_output()`: Formats everything into Markdown with code blocks
-5. Output handlers: Route content to specified destinations
+1. `generate_directory_tree()`: Creates a visual tree representation of the codebase
+2. `get_files_recursively()`: Collects all relevant files while applying ignore rules
+3. `read_file_content()`: Reads and processes file contents with encoding detection
+4. `get_file_language()`: Determines appropriate syntax highlighting
+5. `generate_markdown_output()`: Formats everything into Markdown with code blocks
+6. Output handlers: Route content to specified destinations
 
 ### Data Flow
 1. User input → CLI argument parsing
@@ -185,10 +194,11 @@ The output system uses a multi-step process:
 3. Output configuration parsing
 4. Ignore pattern processing
 5. Gitignore rules loading (if present)
-6. File discovery and filtering
-7. File content reading and processing
-8. Language detection and markdown generation
-9. Output distribution to handlers
+6. Directory tree generation
+7. File discovery and filtering
+8. File content reading and processing
+9. Language detection and markdown generation
+10. Output distribution to handlers
 
 ### CLI Usage Examples
 
@@ -232,9 +242,31 @@ The tool generates Markdown output with the following structure:
 ```markdown
 # Codebase Contents
 
-## File: `src/example.py`
+## Directory Structure
+
+project_name
+├── src
+│   ├── module1
+│   │   └── file1.py
+│   └── module2
+│       ├── file2.py
+│       └── file3.py
+└── README.md
+
+## File Contents
+
+### File: `README.md`
+
+```markdown
+# Project documentation
+```
+
+### File: `src/module1/file1.py`
 
 ```python
 def hello():
     print("Hello, world!")
 ```
+```
+
+The output is designed to be both human-readable and suitable for input to language models, with the directory tree providing a clear overview of the codebase structure before diving into individual file contents.
