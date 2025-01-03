@@ -400,7 +400,21 @@ def generate_markdown_output(
 
     # Add file contents
     markdown += "## File Contents\n\n"
-    for file in sorted(files):
+    # Sort files to match tree view ordering
+    sorted_files = sorted(
+        files,
+        key=lambda p: (
+            # Split path into parts and create tuple for sorting
+            # Each part is a tuple of (is_file, lowercase_name) to match tree view ordering
+            [
+                (part.is_file(), part.name.lower())
+                for part in p.relative_to(base_dir).parents
+            ][::-1]
+            + [(p.is_file(), p.name.lower())]
+        ),
+    )
+
+    for file in sorted_files:
         try:
             relative_path = file.relative_to(base_dir)
             markdown += f"### File: `{relative_path}`\n\n"
