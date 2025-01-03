@@ -54,4 +54,4 @@ The user will request new features for the application. For each feature request
 - Use rich for terminal output formatting
 - Respect the established CLI interface patterns
 
-Please wait for the user's specific feature request and implement it according to these guidelines. Just tell the use what he wants to implement.
+Please wait for the user's specific feature request and implement it according to these guidelines.
