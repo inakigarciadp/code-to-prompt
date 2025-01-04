@@ -1,5 +1,37 @@
 # Code-to-Prompt Repository Guide
 
+## Project Structure
+
+The project is organized into several modules, each with a specific responsibility:
+
+```
+code-to-prompt/
+├── code_to_prompt/          # Main package directory
+│   ├── __init__.py         # Package initialization and version
+│   ├── cli.py              # Command-line interface implementation
+│   ├── config.py           # Configuration structures and parsing
+│   ├── constants.py        # Constant values and default patterns
+│   ├── filesystem.py       # File system operations
+│   ├── formatters.py       # Output formatting and markdown generation
+│   └── handlers.py         # Output handling (console, file)
+├── main.py                 # Entry point script
+├── .gitignore
+├── LICENSE
+├── README.md
+└── pyproject.toml
+```
+
+### Module Descriptions
+
+- `__init__.py`: Package initialization, version information, and exports
+- `cli.py`: Implements the command-line interface using Typer
+- `config.py`: Defines configuration classes and parsing utilities
+- `constants.py`: Contains default ignore patterns and other constants
+- `filesystem.py`: Handles file system operations and gitignore pattern matching
+- `formatters.py`: Manages output formatting and markdown generation
+- `handlers.py`: Implements different output handlers (console, file)
+- `main.py`: Entry point that imports and runs the application
+
 ## Project Dependencies
 
 The application relies on a few carefully selected dependencies:
