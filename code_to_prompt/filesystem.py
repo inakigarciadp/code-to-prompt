@@ -123,3 +123,6 @@ def read_file_content(file_path: Path) -> Optional[str]:
         except Exception as e:
             print(f"[yellow]Warning: Could not read file {file_path}: {e}[/yellow]")
             return None
+    except FileNotFoundError:
+        print(f"[yellow]Warning: File not found: {file_path}[/yellow]")
+        return None
