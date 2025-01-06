@@ -11,5 +11,6 @@ wheels/
 
 .vscode
 .git
+.coverage
 
 output.md
