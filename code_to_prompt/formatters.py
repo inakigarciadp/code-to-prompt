@@ -103,7 +103,8 @@ def generate_markdown_output(
 
     for file in sorted_files:
         try:
-            relative_path = file.relative_to(base_dir)
+            # Convert relative path to string with forward slashes
+            relative_path = str(file.relative_to(base_dir)).replace("\\", "/")
             markdown += f"### File: `{relative_path}`\n\n"
 
             # Read and include file contents
