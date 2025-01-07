@@ -65,7 +65,7 @@ def main(
         print("File mode: Processing single file")
         base_dir = working_path.parent
         files = [working_path]
-        gitignore_spec = None  # No gitignore needed for single file
+        gitignore_spec = load_gitignore(base_dir, DEFAULT_IGNORE_PATTERNS.copy())
     else:
         print("Directory mode: Processing entire directory")
         base_dir = working_path
