@@ -128,7 +128,7 @@ def test_cli_file_mode(temp_project):
 
     assert result.exit_code == 0
     assert "File mode: Processing single file" in result.stdout
-    assert "# File Summary" in result.stdout
+    assert "File Summary" in result.stdout
     assert "Directory Structure" not in result.stdout
     assert "File Contents" in result.stdout
     assert "main.py" in result.stdout

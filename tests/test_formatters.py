@@ -73,38 +73,30 @@ def test_generate_markdown_output_directory_mode(temp_dir, gitignore_spec):
         temp_dir / "subdir" / "test.js",
     ]
 
-    output = generate_markdown_output(files, temp_dir, gitignore_spec, is_file_mode=False)
+    output = generate_markdown_output(
+        files, temp_dir, gitignore_spec, is_file_mode=False
+    )
 
     # Check basic structure
     assert "# Codebase Contents" in output
     assert "## Directory Structure" in output
     assert "## File Contents" in output
 
+
 def test_generate_markdown_output_file_mode(temp_dir, gitignore_spec):
     """Test markdown output generation in file mode."""
     files = [temp_dir / "test.py"]
-    
-    output = generate_markdown_output(files, temp_dir, gitignore_spec, is_file_mode=True)
-    
+
+    output = generate_markdown_output(
+        files, temp_dir, gitignore_spec, is_file_mode=True
+    )
+
     # Check file mode specific structure
     assert "# File Summary" in output
     assert "## Directory Structure" not in output
     assert "## File Contents" in output
-    assert "### File: `test.py`" in output
-    assert "```python" in output
-    assert "def test(): pass" in output
 
     # Check file content inclusion
     assert "### File: `test.py`" in output
     assert "```python" in output
     assert "def test(): pass" in output
-
-    # Check markdown file handling (should not be in code block)
-    assert "### File: `readme.md`" in output
-    assert "# Test" in output
-    assert "This is a test" in output
-
-    # Check JavaScript file
-    assert "### File: `subdir/test.js`" in output
-    assert "```javascript" in output
-    assert "console.log('test');" in output
