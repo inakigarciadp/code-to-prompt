@@ -169,10 +169,15 @@ The application follows these high-level steps:
 
 #### CLI Interface (`app = typer.Typer()`)
 The application uses Typer to create a user-friendly command-line interface. The main command accepts:
-- An optional directory argument
+- An optional directory or file path argument
 - Multiple output destinations via `--output` options
 - File ignore patterns via `--ignore` and `--extra-ignore` options
+- Analyze imports flag for Python files
 - Provides helpful error messages and usage information
+
+The CLI operates in two modes:
+- Directory mode: Processes an entire directory structure (default)
+- File mode: Processes a single file, providing focused output
 
 #### File Ignoring System
 The file ignoring system consists of several components:
@@ -272,6 +277,16 @@ code-to-prompt --output console --output file=output.md --ignore "*.log" --extra
 Short form:
 ```bash
 code-to-prompt -o console -o file=output.md -i "*.log" -e "private/"
+```
+
+Process a single file:
+```bash
+code-to-prompt path/to/file.py
+```
+
+Analyze imports in a file:
+```bash
+code-to-prompt path/to/file.py --analyze-imports
 ```
 
 ### Output Format
