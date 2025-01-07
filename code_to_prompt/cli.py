@@ -18,13 +18,19 @@ app = typer.Typer(
 
 @app.command()
 def main(
-    directory: Optional[Path] = typer.Argument(
+    path: Optional[Path] = typer.Argument(
         None,
-        help="Directory to generate prompt from (defaults to current directory)",
+        help="File or directory to generate prompt from (defaults to current directory)",
         exists=True,
-        file_okay=False,
+        file_okay=True,
         dir_okay=True,
         resolve_path=True,
+    ),
+    analyze_imports: bool = typer.Option(
+        False,
+        "--analyze-imports",
+        "-a",
+        help="Analyze and include local imports when processing a single file",
     ),
     output: Optional[list[str]] = typer.Option(
         ["console"],
@@ -49,31 +55,39 @@ def main(
     Generate an LLM prompt from a codebase.
     """
     # Use current directory if none specified
-    working_dir = directory or Path.cwd()
+    working_path = path or Path.cwd()
 
     # Parse output configurations
     output_configs = [parse_output_config(out) for out in output]
     handlers = get_output_handlers(output_configs)
 
-    # Handle ignore patterns
-    if ignore_patterns is not None:
-        # Use provided patterns (empty list disables all ignoring)
-        patterns_to_use = ignore_patterns
+    if working_path.is_file():
+        print("File mode: Processing single file")
+        base_dir = working_path.parent
+        files = [working_path]
+        gitignore_spec = None  # No gitignore needed for single file
     else:
-        # Start with default patterns
-        patterns_to_use = DEFAULT_IGNORE_PATTERNS.copy()
-        # Add extra patterns if provided
-        if extra_ignore:
-            patterns_to_use.extend(extra_ignore)
+        print("Directory mode: Processing entire directory")
+        base_dir = working_path
+        # Handle ignore patterns
+        if ignore_patterns is not None:
+            # Use provided patterns (empty list disables all ignoring)
+            patterns_to_use = ignore_patterns
+        else:
+            # Start with default patterns
+            patterns_to_use = DEFAULT_IGNORE_PATTERNS.copy()
+            # Add extra patterns if provided
+            if extra_ignore:
+                patterns_to_use.extend(extra_ignore)
 
-    # Load gitignore if it exists and combine with our patterns
-    gitignore_spec = load_gitignore(working_dir, patterns_to_use)
+        # Load gitignore if it exists and combine with our patterns
+        gitignore_spec = load_gitignore(base_dir, patterns_to_use)
 
-    # Get all files recursively, respecting gitignore
-    files = get_files_recursively(working_dir, gitignore_spec)
+        # Get all files recursively, respecting gitignore
+        files = get_files_recursively(base_dir, gitignore_spec)
 
     # Generate markdown output
-    markdown_content = generate_markdown_output(files, working_dir, gitignore_spec)
+    markdown_content = generate_markdown_output(files, base_dir, gitignore_spec)
 
     # Send to all configured outputs
     for handler in handlers:
