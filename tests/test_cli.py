@@ -114,13 +114,36 @@ def test_cli_multiple_outputs(temp_project):
 
     assert result.exit_code == 0
     # Check console output (with rich formatting)
+    assert "Directory mode: Processing entire directory" in result.stdout
     assert "Codebase Contents" in result.stdout
     # Check file output (should be markdown)
     assert output_file.exists()
     assert "# Codebase Contents" in output_file.read_text()
 
 
-def test_cli_non_existent_directory():
+def test_cli_file_mode(temp_project):
+    """Test CLI in file mode (processing single file)."""
+    python_file = temp_project / "src" / "main.py"
+    result = runner.invoke(app, [str(python_file)])
+
+    assert result.exit_code == 0
+    assert "File mode: Processing single file" in result.stdout
+    assert "# File Summary" in result.stdout
+    assert "Directory Structure" not in result.stdout
+    assert "File Contents" in result.stdout
+    assert "main.py" in result.stdout
+
+
+def test_cli_analyze_imports(temp_project):
+    """Test CLI with analyze-imports flag."""
+    python_file = temp_project / "src" / "main.py"
+    result = runner.invoke(app, [str(python_file), "--analyze-imports"])
+
+    assert result.exit_code == 0
+    assert "File mode: Processing single file" in result.stdout
+
+
+def test_cli_non_existent_path():
     """Test CLI with non-existent directory."""
     result = runner.invoke(app, ["non_existent_dir"])
     assert result.exit_code != 0  # Should fail
