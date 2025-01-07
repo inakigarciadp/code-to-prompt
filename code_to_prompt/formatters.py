@@ -1,11 +1,59 @@
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional, Tuple
 
 from pathspec import PathSpec
 
 from code_to_prompt.constants import EXTENSIONS_MAP
 
 from .filesystem import read_file_content, should_ignore
+
+
+def get_path_sort_key(path: Path, base_dir: Path) -> List[Tuple[bool, str]]:
+    """
+    Generate a sort key for a path that will order directories and files consistently.
+    
+    Args:
+        path: The path to generate a sort key for
+        base_dir: The base directory for creating relative paths
+    
+    Returns:
+        List of tuples containing (is_file, lowercase_name) for each path component
+        
+    Example:
+        For path 'src/module/file.py' relative to base_dir, returns:
+        [(False, 'src'), (False, 'module'), (True, 'file.py')]
+    """
+    # Get the relative path from base_dir to our target path
+    relative_path = path.relative_to(base_dir)
+    
+    # Initialize our sort key list
+    sort_key = []
+    
+    # Add each parent directory to the sort key
+    # We iterate through parts from left to right (root to leaf)
+    current_path = base_dir
+    for part in relative_path.parts[:-1]:  # Exclude the last part (file/dir name)
+        current_path = current_path / part
+        sort_key.append((current_path.is_file(), part.lower()))
+    
+    # Add the final component (file or directory name)
+    sort_key.append((path.is_file(), relative_path.name.lower()))
+    
+    return sort_key
+
+
+def sort_files(files: List[Path], base_dir: Path) -> List[Path]:
+    """
+    Sort files in a consistent order matching directory tree view.
+    
+    Args:
+        files: List of file paths to sort
+        base_dir: Base directory for relative path calculation
+    
+    Returns:
+        Sorted list of paths with directories first, then files, all alphabetically
+    """
+    return sorted(files, key=lambda p: get_path_sort_key(p, base_dir))
 
 
 def get_file_language(file_path: Path) -> str:
@@ -94,18 +142,7 @@ def generate_markdown_output(
     # Add file contents
     markdown += "## File Contents\n\n"
     # Sort files to match tree view ordering
-    sorted_files = sorted(
-        files,
-        key=lambda p: (
-            # Split path into parts and create tuple for sorting
-            # Each part is a tuple of (is_file, lowercase_name) to match tree view ordering
-            [
-                (part.is_file(), part.name.lower())
-                for part in p.relative_to(base_dir).parents
-            ][::-1]
-            + [(p.is_file(), p.name.lower())]
-        ),
-    )
+    sorted_files = sort_files(files, base_dir)
 
     for file in sorted_files:
         try:
