@@ -63,27 +63,33 @@ def generate_directory_tree(
 
 
 def generate_markdown_output(
-    files: list[Path], base_dir: Path, gitignore_spec: Optional[PathSpec]
+    files: list[Path], 
+    base_dir: Path, 
+    gitignore_spec: Optional[PathSpec],
+    is_file_mode: bool = False
 ) -> str:
     """
-    Generate markdown formatted output for the list of files, including directory tree and contents.
+    Generate markdown formatted output for the list of files.
 
     Args:
         files: List of files to include in the output
         base_dir: The base directory for creating relative paths
         gitignore_spec: Optional PathSpec object with gitignore patterns
+        is_file_mode: If True, skip directory tree and use file-specific header
 
     Returns:
         Markdown formatted string
     """
-    markdown = "# Codebase Contents\n\n"
-
-    # Add directory tree
-    markdown += "## Directory Structure\n\n"
-    markdown += "```\n"
-    markdown += base_dir.name + "\n"  # Root directory name
-    markdown += generate_directory_tree(base_dir, gitignore_spec)
-    markdown += "\n```\n\n"
+    if is_file_mode:
+        markdown = "# File Summary\n\n"
+    else:
+        markdown = "# Codebase Contents\n\n"
+        # Add directory tree
+        markdown += "## Directory Structure\n\n"
+        markdown += "```\n"
+        markdown += base_dir.name + "\n"  # Root directory name
+        markdown += generate_directory_tree(base_dir, gitignore_spec)
+        markdown += "\n```\n\n"
 
     # Add file contents
     markdown += "## File Contents\n\n"

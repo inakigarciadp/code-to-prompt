@@ -87,7 +87,12 @@ def main(
         files = get_files_recursively(base_dir, gitignore_spec)
 
     # Generate markdown output
-    markdown_content = generate_markdown_output(files, base_dir, gitignore_spec)
+    markdown_content = generate_markdown_output(
+        files, 
+        base_dir, 
+        gitignore_spec,
+        is_file_mode=working_path.is_file()
+    )
 
     # Send to all configured outputs
     for handler in handlers:
