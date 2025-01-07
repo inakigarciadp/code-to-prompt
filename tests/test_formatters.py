@@ -65,20 +65,34 @@ def test_generate_directory_tree(temp_dir, gitignore_spec):
     assert "\n" in tree  # Should be multi-line
 
 
-def test_generate_markdown_output(temp_dir, gitignore_spec):
-    """Test markdown output generation with a simple directory structure."""
+def test_generate_markdown_output_directory_mode(temp_dir, gitignore_spec):
+    """Test markdown output generation in directory mode."""
     files = [
         temp_dir / "test.py",
         temp_dir / "readme.md",
         temp_dir / "subdir" / "test.js",
     ]
 
-    output = generate_markdown_output(files, temp_dir, gitignore_spec)
+    output = generate_markdown_output(files, temp_dir, gitignore_spec, is_file_mode=False)
 
     # Check basic structure
     assert "# Codebase Contents" in output
     assert "## Directory Structure" in output
     assert "## File Contents" in output
+
+def test_generate_markdown_output_file_mode(temp_dir, gitignore_spec):
+    """Test markdown output generation in file mode."""
+    files = [temp_dir / "test.py"]
+    
+    output = generate_markdown_output(files, temp_dir, gitignore_spec, is_file_mode=True)
+    
+    # Check file mode specific structure
+    assert "# File Summary" in output
+    assert "## Directory Structure" not in output
+    assert "## File Contents" in output
+    assert "### File: `test.py`" in output
+    assert "```python" in output
+    assert "def test(): pass" in output
 
     # Check file content inclusion
     assert "### File: `test.py`" in output

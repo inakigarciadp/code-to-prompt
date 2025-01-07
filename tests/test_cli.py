@@ -37,8 +37,8 @@ def temp_project(tmp_path) -> Generator[Path, None, None]:
     yield project_dir
 
 
-def test_cli_default_directory(temp_project):
-    """Test CLI with default directory (current working directory)."""
+def test_cli_directory_mode(temp_project):
+    """Test CLI in directory mode (processing entire directory)."""
     # Change to the temporary project directory
     with runner.isolated_filesystem():
         os.chdir(str(temp_project))
