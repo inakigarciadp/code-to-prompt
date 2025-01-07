@@ -62,4 +62,4 @@ def get_output_handlers(configs: list[OutputConfig]) -> list[OutputHandler]:
         else:
             raise typer.BadParameter(f"Unknown output type: {config.type}")
 
-    return handlers or [console_output]
+    return handlers
