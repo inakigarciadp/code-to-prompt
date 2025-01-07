@@ -19,9 +19,9 @@ def test_get_path_sort_key(tmp_path):
     file_path = tmp_path / "src" / "module" / "file.py"
     file_path.parent.mkdir(parents=True)
     file_path.touch()
-    
+
     sort_key = get_path_sort_key(file_path, tmp_path)
-    
+
     assert len(sort_key) == 3
     assert sort_key[0] == (False, "src")
     assert sort_key[1] == (False, "module")
@@ -36,20 +36,20 @@ def test_sort_files(tmp_path):
     file1 = tmp_path / "src" / "module" / "file.py"
     file2 = tmp_path / "README.md"
     file3 = tmp_path / "src" / "test.py"
-    
+
     for f in [file1, file2, file3]:
         f.touch()
-    
+
     files = [file1, file2, file3]
     sorted_files = sort_files(files, tmp_path)
-    
+
     # Convert to relative paths for easier assertion
     sorted_paths = [str(f.relative_to(tmp_path)) for f in sorted_files]
-    
+
     assert sorted_paths == [
-        "README.md",
         "src/module/file.py",
-        "src/test.py"
+        "src/test.py",
+        "README.md",
     ]
 
 
