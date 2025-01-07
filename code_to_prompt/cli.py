@@ -27,7 +27,7 @@ def main(
         resolve_path=True,
     ),
     output: Optional[list[str]] = typer.Option(
-        None,
+        ["console"],
         "--output",
         "-o",
         help="Output destinations (e.g., console, file=output.md). Multiple allowed.",
@@ -52,7 +52,7 @@ def main(
     working_dir = directory or Path.cwd()
 
     # Parse output configurations
-    output_configs = [parse_output_config(out) for out in (output or ["console"])]
+    output_configs = [parse_output_config(out) for out in output]
     handlers = get_output_handlers(output_configs)
 
     # Handle ignore patterns
